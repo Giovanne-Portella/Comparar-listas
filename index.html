@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparador de Listas Avançado</title>
+        <link href="favicon.png" rel="icon" type="image/png" />
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Tema Claro (Padrão) - Gradiente de Azul para Branco */
+            --bg-gradient: linear-gradient(135deg, #e3f2fd, #ffffff);
+            --bg-color: #f8f9fa;
+            --container-bg: white;
+            --text-color: #212529;
+            --header-bg: linear-gradient(135deg, #007BFF, #0056b3);
+            --header-text: white;
+            --tab-bg: #e9ecef;
+            --tab-text: #495057;
+            --tab-active-bg: white;
+            --tab-active-text: #007BFF;
+            --tab-active-border: #007BFF;
+            --input-border: #e9ecef;
+            --input-focus-border: #007BFF;
+            --input-bg: #ffffff;
+            --button-bg: #007BFF;
+            --button-hover-bg: #0056b3;
+            --stat-card-bg: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            --stat-card-border: #007BFF;
+            --stat-value-color: #007BFF;
+            --table-border: #dee2e6;
+            --json-toggle-hover: #f0f8ff;
+            --json-content-bg: #f8f9fa;
+            --history-item-bg: white;
+            --history-item-border: #dee2e6;
+            --history-stat-bg: #f8f9fa;
+        }
+
+        [data-theme="dark"] {
+            /* Tema Escuro - Gradiente de Azul para Preto */
+            --bg-gradient: linear-gradient(135deg, #0d253f, #000000);
+            --bg-color: #0a192f;
+            --container-bg: #112240;
+            --text-color: #ccd6f6;
+            --header-bg: linear-gradient(135deg, #007BFF, #003d80);
+            --header-text: white;
+            --tab-bg: #0a192f;
+            --tab-text: #8892b0;
+            --tab-active-bg: #112240;
+            --tab-active-text: #64ffda;
+            --tab-active-border: #64ffda;
+            --input-border: #233554;
+            --input-focus-border: #64ffda;
+            --input-bg: #0a192f;
+            --button-bg: #007BFF;
+            --button-hover-bg: #0056b3;
+            --stat-card-bg: linear-gradient(135deg, #112240, #0a192f);
+            --stat-card-border: #64ffda;
+            --stat-value-color: #64ffda;
+            --table-border: #233554;
+            --json-toggle-hover: #233554;
+            --json-content-bg: #0a192f;
+            --history-item-bg: #112240;
+            --history-item-border: #233554;
+            --history-stat-bg: #0a192f;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+            background: var(--bg-gradient);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: var(--container-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border: 1px solid var(--table-border);
+        }
+
+        .header {
+            background: var(--header-bg);
+            color: var(--header-text);
+            padding: 20px;
+            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+        }
+
+        #theme-toggle-btn {
+            background: none;
+            border: 2px solid var(--header-text);
+            color: var(--header-text);
+            font-size: 24px;
+            cursor: pointer;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        #theme-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: rotate(15deg);
+        }
+
+        .tabs {
+            display: flex;
+            background: var(--tab-bg);
+            border-bottom: 1px solid var(--table-border);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--tab-text);
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            background: var(--tab-active-bg);
+        }
+
+        .tab.active {
+            background: var(--container-bg);
+            color: var(--tab-active-text);
+            border-bottom: 3px solid var(--tab-active-border);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .input-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 10px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 15px;
+            border: 2px solid var(--input-border);
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            transition: border-color 0.3s, background-color 0.3s, color 0.3s;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--input-focus-border);
+        }
+
+        button {
+            margin: 10px 0;
+            padding: 12px 24px;
+            background-color: var(--button-bg);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background-color: var(--button-hover-bg);
+            transform: translateY(-1px);
+        }
+
+        .stat-card {
+            background: var(--stat-card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            border-left: 4px solid var(--stat-card-border);
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: var(--stat-value-color);
+            margin-bottom: 5px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            table-layout: fixed;
+        }
+
+        th {
+            background: var(--header-bg);
+            color: var(--header-text);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid var(--table-border);
+        }
+
+        .json-toggle {
+            cursor: pointer;
+            color: var(--tab-active-text);
+            font-weight: bold;
+        }
+
+        .json-toggle:hover {
+            background-color: var(--json-toggle-hover);
+        }
+
+        .json-content {
+            display: none;
+            white-space: pre-wrap;
+            background: var(--json-content-bg);
+            padding: 15px;
+            margin-top: 8px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            border-left: 4px solid var(--tab-active-text);
+            color: var(--text-color);
+        }
+
+        .history-item {
+            background: var(--history-item-bg);
+            border: 1px solid var(--history-item-border);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .history-stat {
+            text-align: center;
+            padding: 8px;
+            background: var(--history-stat-bg);
+            border-radius: 4px;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--input-border);
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            border-radius: 6px;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .label-with-upload {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .upload-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background-color 0.3s;
+        }
+
+        .upload-btn:hover {
+            background: #218838;
+        }
+
+        .drag-over {
+            border-color: #007BFF !important;
+            background-color: #f0f8ff !important;
+        }
+
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .secondary-btn {
+            background-color: #6c757d;
+        }
+
+        .secondary-btn:hover {
+            background-color: #5a6268;
+        }
+
+        .danger-btn {
+            background-color: #dc3545;
+        }
+
+        .danger-btn:hover {
+            background-color: #c82333;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .stat-label {
+            color: #8892b0;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        th,
+        td {
+            padding: 15px;
+            text-align: left;
+            vertical-align: top;
+            width: 33.33%;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .json-toggle::before {
+            content: "▶";
+            display: inline-block;
+            font-size: 12px;
+            transition: transform 0.2s;
+        }
+
+        .json-toggle.expanded::before {
+            transform: rotate(90deg);
+        }
+
+        .scrollable {
+            max-height: 400px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .item-count {
+            font-size: 0.9em;
+            color: #8892b0;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .empty-message {
+            color: #8892b0;
+            font-style: italic;
+            text-align: center;
+            padding: 40px;
+            background: var(--history-stat-bg);
+            border-radius: 6px;
+        }
+
+        .copy-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: background-color 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #5a6268;
+        }
+
+        td>div,
+        .scrollable>div {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+            max-width: 100%;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .json-content,
+        .scrollable {
+            hyphens: auto;
+            word-break: break-all;
+        }
+
+        .history-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .history-date {
+            color: #8892b0;
+            font-size: 0.9em;
+        }
+
+        .history-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--input-focus-border);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            background: #e9ecef;
+            color: #495057;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .filter-btn.active {
+            background: #007BFF;
+            color: white;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #e9ecef;
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #007BFF, #0056b3);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .similarity-bar {
+            width: 100%;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .similarity-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #dc3545, #ffc107, #28a745);
+            transition: width 0.5s;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: #28a745;
+            color: white;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            background: #dc3545;
+        }
+
+        .notification.warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        #save-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #save-modal>div {
+            background: var(--container-bg);
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        #comparison-name {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 2px solid var(--input-border);
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            border-radius: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .input-section {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .history-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>Comparador de Listas Avançado</h1>
+                <p>Compare listas, analise JSON, visualize estatísticas e mantenha seu histórico</p>
+            </div>
+            <button id="theme-toggle-btn" title="Mudar tema">🌙</button>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('comparator')">Comparador</button>
+            <button class="tab" onclick="switchTab('history')">Histórico</button>
+        </div>
+
+        
+        <div id="comparator" class="tab-content active">
+            <div class="input-section">
+                <div class="input-group">
+                    <div class="label-with-upload">
+                        <label for="list1">Lista 1:</label>
+                        <button class="upload-btn" onclick="triggerFileUpload('list1')">📁 Upload</button>
+                    </div>
+                    <textarea id="list1"
+                        placeholder='Digite os itens linha por linha ou cole JSON como: {"nome": "João", "idade": 30}'></textarea>
+                    <input type="file" id="file1" style="display: none" accept=".txt,.json,.csv"
+                        onchange="handleFileUpload(event, 'list1')">
+                </div>
+
+                <div class="input-group">
+                    <div class="label-with-upload">
+                        <label for="list2">Lista 2:</label>
+                        <button class="upload-btn" onclick="triggerFileUpload('list2')">📁 Upload</button>
+                    </div>
+                    <textarea id="list2"
+                        placeholder='Digite os itens linha por linha ou cole JSON como: {"nome": "Maria", "idade": 25}'></textarea>
+                    <input type="file" id="file2" style="display: none" accept=".txt,.json,.csv"
+                        onchange="handleFileUpload(event, 'list2')">
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div class="button-group">
+                    <button onclick="compareLists()">🔍 Comparar Listas</button>
+                    <button class="secondary-btn" onclick="clearInputs()">🗑️ Limpar</button>
+                    <button class="secondary-btn" onclick="saveToHistory()">💾 Salvar no Histórico</button>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <input type="checkbox" id="case-sensitive" style="transform: scale(1.2);">
+                    <label for="case-sensitive" style="font-weight: 500; cursor: pointer;">Case Sensitive</label>
+                </div>
+            </div>
+
+            <div class="progress-bar" id="progress-bar" style="display: none;">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+
+            <div id="results-container" style="display: none;">
+                <h3>Resultados da Comparação:</h3>
+
+                <div class="stats-grid" id="comparison-stats">
+                </div>
+
+                <div class="similarity-bar">
+                    <div class="similarity-fill" id="similarity-fill"></div>
+                </div>
+                <p style="text-align: center; margin-top: 10px;">
+                    <strong>Índice de Similaridade: <span id="similarity-index">0%</span></strong>
+                </p>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Itens em Ambas (<span id="found-count">0</span>)</th>
+                            <th>Apenas na Lista 1 (<span id="not-found-count">0</span>)</th>
+                            <th>Apenas na Lista 2 (<span id="remaining-count">0</span>)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td id="found" class="scrollable"></td>
+                            <td id="not-found" class="scrollable"></td>
+                            <td id="list2-remaining" class="scrollable"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="history" class="tab-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3>Histórico de Comparações</h3>
+                <button class="danger-btn" onclick="clearHistory()">🗑️ Limpar Histórico</button>
+            </div>
+
+            <input type="text" class="search-box" id="history-search" placeholder="🔍 Buscar no histórico..."
+                onkeyup="filterHistory()">
+
+            <div class="filter-buttons">
+                <button class="filter-btn active" onclick="setHistoryFilter('all')">Todos</button>
+                <button class="filter-btn" onclick="setHistoryFilter('recent')">Recentes</button>
+                <button class="filter-btn" onclick="setHistoryFilter('high-similarity')">Alta Similaridade</button>
+                <button class="filter-btn" onclick="setHistoryFilter('low-similarity')">Baixa Similaridade</button>
+            </div>
+
+            <div id="history-container">
+            </div>
+        </div>
+    </div>
+
+    <div id="save-modal">
+        <div>
+            <h3 style="margin-top: 0;">Salvar Comparação</h3>
+            <label for="comparison-name">Nome da comparação:</label>
+            <input type="text" id="comparison-name" placeholder="Digite um nome para esta comparação"
+                onkeypress="handleModalEnter(event)">
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                <button class="secondary-btn" onclick="closeSaveModal()">Cancelar</button>
+                <button onclick="saveComparisonWithName()">💾 Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variáveis globais
+        let currentComparison = null;
+        let historyFilter = 'all';
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function () {
+            setupTheme();
+            loadHistory();
+            setupDragAndDrop();
+        });
+
+        // LÓGICA DO TEMA
+        function setupTheme() {
+            const themeToggleBtn = document.getElementById('theme-toggle-btn');
+            const currentTheme = localStorage.getItem('theme') || 'light';
+
+            document.documentElement.setAttribute('data-theme', currentTheme);
+
+            if (currentTheme === 'dark') {
+                themeToggleBtn.textContent = '☀️';
+            } else {
+                themeToggleBtn.textContent = '🌙';
+            }
+
+            themeToggleBtn.addEventListener('click', () => {
+                let theme = document.documentElement.getAttribute('data-theme');
+                if (theme === 'light') {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    localStorage.setItem('theme', 'dark');
+                    themeToggleBtn.textContent = '☀️';
+                } else {
+                    document.documentElement.setAttribute('data-theme', 'light');
+                    localStorage.setItem('theme', 'light');
+                    themeToggleBtn.textContent = '🌙';
+                }
+            });
+        }
+
+        // O restante do seu SCRIPT (a partir de // Sistema de abas) permanece o mesmo
+        // ... (todo o seu JavaScript original) ...
+        // Sistema de abas
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+            if (tabName === 'history') {
+                loadHistory();
+            }
+        }
+        // Sistema de drag and drop
+        function setupDragAndDrop() {
+            ['list1', 'list2'].forEach(id => {
+                const textarea = document.getElementById(id);
+                textarea.addEventListener('dragover', function (e) { e.preventDefault(); textarea.classList.add('drag-over'); });
+                textarea.addEventListener('dragleave', function (e) { textarea.classList.remove('drag-over'); });
+                textarea.addEventListener('drop', function (e) {
+                    e.preventDefault();
+                    textarea.classList.remove('drag-over');
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        handleFileUpload({ target: { files: files } }, id);
+                    }
+                });
+            });
+        }
+        function triggerFileUpload(listId) {
+            document.getElementById(listId === 'list1' ? 'file1' : 'file2').click();
+        }
+        function handleFileUpload(event, targetId) {
+            const file = event.target.files[0];
+            if (!file) return;
+            showProgress();
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const content = e.target.result;
+                    let processedContent = '';
+                    if (file.name.endsWith('.json')) {
+                        const jsonData = JSON.parse(content);
+                        if (Array.isArray(jsonData)) {
+                            processedContent = jsonData.map(item => typeof item === 'object' ? JSON.stringify(item) : item).join('\n');
+                        } else {
+                            processedContent = JSON.stringify(jsonData);
+                        }
+                    } else if (file.name.endsWith('.csv')) {
+                        const lines = content.split('\n');
+                        const headers = lines[0].split(',');
+                        processedContent = lines.slice(1).map(line => {
+                            const values = line.split(',');
+                            const obj = {};
+                            headers.forEach((header, index) => {
+                                obj[header.trim()] = values[index]?.trim() || '';
+                            });
+                            return JSON.stringify(obj);
+                        }).join('\n');
+                    } else {
+                        processedContent = content;
+                    }
+                    document.getElementById(targetId).value = processedContent;
+                    hideProgress();
+                    showNotification(`Arquivo ${file.name} carregado com sucesso!`);
+                } catch (error) {
+                    hideProgress();
+                    showNotification(`Erro ao processar arquivo: ${error.message}`, 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+        function showProgress(percent = 0) {
+            const progressBar = document.getElementById('progress-bar');
+            const progressFill = document.getElementById('progress-fill');
+            progressBar.style.display = 'block';
+            progressFill.style.width = percent + '%';
+        }
+        function hideProgress() {
+            setTimeout(() => {
+                document.getElementById('progress-bar').style.display = 'none';
+            }, 500);
+        }
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.classList.add('show'), 100);
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => document.body.removeChild(notification), 300);
+            }, 3000);
+        }
+        function normalizeText(text, caseSensitive = false) {
+            const normalized = text.trim().replace(/\s+/g, " ");
+            return caseSensitive ? normalized : normalized.toLowerCase();
+        }
+        function isJsonString(str) {
+            try { JSON.parse(str); return true; } catch (e) { return false; }
+        }
+        function formatJson(jsonStr) {
+            try {
+                const parsed = JSON.parse(jsonStr);
+                return JSON.stringify(parsed, null, 2).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            } catch (e) { return "Erro ao formatar o JSON"; }
+        }
+        function deepCompareJSON(obj1, obj2, caseSensitive = false) {
+            if (obj1 === obj2) return true;
+            if (obj1 == null || obj2 == null || typeof obj1 !== typeof obj2) return false;
+            if (typeof obj1 === 'object') {
+                const keys1 = Object.keys(obj1);
+                const keys2 = Object.keys(obj2);
+                if (keys1.length !== keys2.length) return false;
+                for (let key of keys1) {
+                    if (!keys2.includes(key) || !deepCompareJSON(obj1[key], obj2[key], caseSensitive)) return false;
+                }
+                return true;
+            }
+            if (typeof obj1 === 'string' && typeof obj2 === 'string') {
+                return caseSensitive ? obj1 === obj2 : obj1.toLowerCase() === obj2.toLowerCase();
+            }
+            return obj1 === obj2;
+        }
+        function calculateJaccardIndex(set1, set2) {
+            const intersection = new Set([...set1].filter(x => set2.has(x)));
+            const union = new Set([...set1, ...set2]);
+            return union.size === 0 ? 0 : intersection.size / union.size;
+        }
+        function createJsonToggle(jsonStr) {
+            const container = document.createElement("div");
+            const toggle = document.createElement("div");
+            toggle.classList.add("json-toggle");
+            toggle.textContent = "JSON";
+            const copyBtn = document.createElement("button");
+            copyBtn.classList.add("copy-btn");
+            copyBtn.textContent = "Copiar";
+            copyBtn.onclick = function (e) {
+                e.stopPropagation();
+                navigator.clipboard.writeText(jsonStr).then(() => {
+                    copyBtn.textContent = "Copiado!";
+                    setTimeout(() => copyBtn.textContent = "Copiar", 2000);
+                });
+            };
+            toggle.appendChild(copyBtn);
+            const content = document.createElement("pre");
+            content.classList.add("json-content");
+            content.innerHTML = formatJson(jsonStr);
+            toggle.addEventListener("click", function () {
+                toggle.classList.toggle("expanded");
+                content.style.display = toggle.classList.contains("expanded") ? "block" : "none";
+            });
+            container.appendChild(toggle);
+            container.appendChild(content);
+            return container;
+        }
+        function displayItems(elementId, items) {
+            const container = document.getElementById(elementId);
+            container.innerHTML = "";
+            if (items.length === 0) {
+                container.innerHTML = '<div class="empty-message">Nenhum item encontrado</div>';
+                return;
+            }
+            items.forEach(item => {
+                const div = document.createElement("div");
+                if (isJsonString(item)) {
+                    div.appendChild(createJsonToggle(item));
+                } else {
+                    const textDiv = document.createElement('div');
+                    textDiv.textContent = item;
+                    div.appendChild(textDiv);
+                }
+                container.appendChild(div);
+            });
+        }
+        function compareLists() {
+            showProgress(10);
+            const list1Text = document.getElementById("list1").value;
+            const list2Text = document.getElementById("list2").value;
+            const caseSensitive = document.getElementById("case-sensitive").checked;
+            if (!list1Text.trim() || !list2Text.trim()) {
+                showNotification("Por favor, preencha ambas as listas!", 'warning');
+                hideProgress();
+                return;
+            }
+            showProgress(30);
+            const list1 = list1Text.split("\n").map(item => item.trim()).filter(item => item);
+            const list2 = list2Text.split("\n").map(item => item.trim()).filter(item => item);
+            showProgress(50);
+            const foundItems = [];
+            const notFoundItems = [];
+            const remainingItems = [...list2];
+            list1.forEach(item1 => {
+                let found = false;
+                if (isJsonString(item1)) {
+                    const json1 = JSON.parse(item1);
+                    for (let i = 0; i < remainingItems.length; i++) {
+                        const item2 = remainingItems[i];
+                        if (isJsonString(item2)) {
+                            const json2 = JSON.parse(item2);
+                            if (deepCompareJSON(json1, json2, caseSensitive)) {
+                                foundItems.push(item1);
+                                remainingItems.splice(i, 1);
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    const normalizedItem1 = normalizeText(item1, caseSensitive);
+                    for (let i = 0; i < remainingItems.length; i++) {
+                        const item2 = remainingItems[i];
+                        if (normalizeText(item2, caseSensitive) === normalizedItem1) {
+                            foundItems.push(item1);
+                            remainingItems.splice(i, 1);
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                if (!found) { notFoundItems.push(item1); }
+            });
+            showProgress(80);
+            const commonItems = foundItems.length;
+            const uniqueItems = notFoundItems.length + remainingItems.length;
+            const normalizedList1 = new Set(list1.map(item => normalizeText(item, caseSensitive)));
+            const normalizedList2 = new Set(list2.map(item => normalizeText(item, caseSensitive)));
+            const jaccardIndex = calculateJaccardIndex(normalizedList1, normalizedList2);
+            const similarityPercent = Math.round(jaccardIndex * 100);
+            displayItems("found", foundItems);
+            displayItems("not-found", notFoundItems);
+            displayItems("list2-remaining", remainingItems);
+            document.getElementById("found-count").textContent = foundItems.length;
+            document.getElementById("not-found-count").textContent = notFoundItems.length;
+            document.getElementById("remaining-count").textContent = remainingItems.length;
+            updateComparisonStats(list1.length, list2.length, commonItems, uniqueItems, jaccardIndex);
+            document.getElementById("similarity-fill").style.width = similarityPercent + "%";
+            document.getElementById("similarity-index").textContent = similarityPercent + "%";
+            currentComparison = {
+                timestamp: new Date().toISOString(), list1: list1Text, list2: list2Text, caseSensitive: caseSensitive,
+                results: {
+                    found: foundItems, notFound: notFoundItems, remaining: remainingItems,
+                    stats: { list1Count: list1.length, list2Count: list2.length, commonItems, uniqueItems, jaccardIndex, similarityPercent }
+                }
+            };
+            showProgress(100);
+            document.getElementById("results-container").style.display = "block";
+            hideProgress();
+            showNotification("Comparação concluída com sucesso!");
+        }
+        function updateComparisonStats(list1Count, list2Count, commonItems, uniqueItems, jaccardIndex) {
+            const statsContainer = document.getElementById("comparison-stats");
+            statsContainer.innerHTML = `
+                <div class="stat-card"><div class="stat-value">${list1Count}</div><div class="stat-label">Itens Lista 1</div></div>
+                <div class="stat-card"><div class="stat-value">${list2Count}</div><div class="stat-label">Itens Lista 2</div></div>
+                <div class="stat-card"><div class="stat-value">${commonItems}</div><div class="stat-label">Em Ambas</div></div>
+                <div class="stat-card"><div class="stat-value">${uniqueItems}</div><div class="stat-label">Únicos</div></div>
+                <div class="stat-card"><div class="stat-value">${Math.round(jaccardIndex * 100)}%</div><div class="stat-label">Similaridade</div></div>
+                <div class="stat-card"><div class="stat-value">${(jaccardIndex * 100).toFixed(2)}</div><div class="stat-label">Índice Jaccard</div></div>
+            `;
+        }
+        function saveToHistory() {
+            if (!currentComparison) { showNotification("Realize uma comparação primeiro!", 'warning'); return; }
+            document.getElementById('save-modal').style.display = 'flex';
+            document.getElementById('comparison-name').focus();
+        }
+        function closeSaveModal() {
+            document.getElementById('save-modal').style.display = 'none';
+            document.getElementById('comparison-name').value = '';
+        }
+        function saveComparisonWithName() {
+            const name = document.getElementById('comparison-name').value.trim();
+            if (!name) { showNotification("Por favor, digite um nome para a comparação!", 'warning'); return; }
+            let history = JSON.parse(localStorage.getItem('listComparatorHistory') || '[]');
+            currentComparison.name = name;
+            currentComparison.id = Date.now().toString();
+            history.unshift(currentComparison);
+            if (history.length > 100) { history = history.slice(0, 100); }
+            localStorage.setItem('listComparatorHistory', JSON.stringify(history));
+            showNotification(`Comparação "${name}" salva no histórico!`);
+            closeSaveModal();
+            if (document.getElementById('history').classList.contains('active')) { loadHistory(); }
+        }
+        function loadHistory() {
+            const history = JSON.parse(localStorage.getItem('listComparatorHistory') || '[]');
+            const container = document.getElementById('history-container');
+            if (history.length === 0) {
+                container.innerHTML = '<div class="empty-message">Nenhuma comparação salva ainda</div>';
+                return;
+            }
+            let filteredHistory = filterHistoryByType(history);
+            const searchTerm = document.getElementById('history-search').value.toLowerCase();
+            if (searchTerm) {
+                filteredHistory = filteredHistory.filter(item =>
+                    (item.name && item.name.toLowerCase().includes(searchTerm)) ||
+                    item.list1.toLowerCase().includes(searchTerm) ||
+                    item.list2.toLowerCase().includes(searchTerm) ||
+                    new Date(item.timestamp).toLocaleDateString().includes(searchTerm)
+                );
+            }
+            container.innerHTML = filteredHistory.map(item => createHistoryItemHTML(item)).join('');
+        }
+        function filterHistoryByType(history) {
+            switch (historyFilter) {
+                case 'recent':
+                    const oneWeekAgo = new Date(); oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+                    return history.filter(item => new Date(item.timestamp) > oneWeekAgo);
+                case 'high-similarity': return history.filter(item => item.results.stats.similarityPercent >= 70);
+                case 'low-similarity': return history.filter(item => item.results.stats.similarityPercent < 30);
+                default: return history;
+            }
+        }
+        function createHistoryItemHTML(item) {
+            const date = new Date(item.timestamp).toLocaleString('pt-BR');
+            const stats = item.results.stats;
+            return `
+                <div class="history-item">
+                    <div class="history-header">
+                        <div><strong>${item.name || 'Comparação sem nome'}</strong><div class="history-date">${date}</div></div>
+                        <div class="button-group">
+                            <button class="secondary-btn" onclick="loadHistoryItem('${item.id}')">📂 Carregar</button>
+                            <button class="danger-btn" onclick="deleteHistoryItem('${item.id}')">🗑️ Excluir</button>
+                        </div>
+                    </div>
+                    <div class="history-stats">
+                        <div class="history-stat"><div><strong>${stats.list1Count}</strong></div><div>Lista 1</div></div>
+                        <div class="history-stat"><div><strong>${stats.list2Count}</strong></div><div>Lista 2</div></div>
+                        <div class="history-stat"><div><strong>${stats.similarityPercent}%</strong></div><div>Similaridade</div></div>
+                        <div class="history-stat"><div><strong>${item.caseSensitive ? 'Sim' : 'Não'}</strong></div><div>Case Sensitive</div></div>
+                    </div>
+                    <div class="similarity-bar"><div class="similarity-fill" style="width: ${stats.similarityPercent}%"></div></div>
+                </div>`;
+        }
+        function loadHistoryItem(id) {
+            const history = JSON.parse(localStorage.getItem('listComparatorHistory') || '[]');
+            const item = history.find(h => h.id === id);
+            if (item) {
+                document.getElementById('list1').value = item.list1;
+                document.getElementById('list2').value = item.list2;
+                document.getElementById('case-sensitive').checked = item.caseSensitive || false;
+                currentComparison = item;
+                switchTab('comparator');
+                displayItems("found", item.results.found);
+                displayItems("not-found", item.results.notFound);
+                displayItems("list2-remaining", item.results.remaining);
+                const stats = item.results.stats;
+                document.getElementById("found-count").textContent = stats.commonItems;
+                document.getElementById("not-found-count").textContent = stats.list1Count - stats.commonItems;
+                document.getElementById("remaining-count").textContent = stats.list2Count - stats.commonItems;
+                updateComparisonStats(stats.list1Count, stats.list2Count, stats.commonItems, stats.uniqueItems, stats.jaccardIndex);
+                document.getElementById("similarity-fill").style.width = stats.similarityPercent + "%";
+                document.getElementById("similarity-index").textContent = stats.similarityPercent + "%";
+                document.getElementById("results-container").style.display = "block";
+                showNotification("Comparação carregada com sucesso!");
+            }
+        }
+        function deleteHistoryItem(id) {
+            if (confirm('Tem certeza que deseja excluir este item do histórico?')) {
+                let history = JSON.parse(localStorage.getItem('listComparatorHistory') || '[]');
+                history = history.filter(item => item.id !== id);
+                localStorage.setItem('listComparatorHistory', JSON.stringify(history));
+                loadHistory();
+                showNotification("Item excluído do histórico!");
+            }
+        }
+        function clearHistory() {
+            if (confirm('Tem certeza que deseja limpar todo o histórico? Esta ação não pode ser desfeita.')) {
+                localStorage.removeItem('listComparatorHistory');
+                loadHistory();
+                showNotification("Histórico limpo com sucesso!");
+            }
+        }
+        function filterHistory() { loadHistory(); }
+        function setHistoryFilter(filter) {
+            historyFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[onclick="setHistoryFilter('${filter}')"]`).classList.add('active');
+            loadHistory();
+        }
+        function clearInputs() {
+            document.getElementById('list1').value = '';
+            document.getElementById('list2').value = '';
+            document.getElementById('results-container').style.display = 'none';
+            currentComparison = null;
+            showNotification("Campos limpos!");
+        }
+        function handleModalEnter(event) {
+            if (event.key === 'Enter') { saveComparisonWithName(); }
+        }
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                const modal = document.getElementById('save-modal');
+                if (modal.style.display === 'flex') { closeSaveModal(); }
+            }
+        });
+    </script>
+</body>
+
+</html>
